@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Register Project</title>
+        <link
+            rel="stylesheet"
+            href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        />
+    </head>
+    <body>
+        <div class="container mt-5">
+            <h2>Register New Project</h2>
+            <form id="registerForm" class="mt-4">
+                <div class="form-group">
+                    <label for="projectId">Project ID</label>
+                    <input
+                        type="number"
+                        class="form-control"
+                        id="projectId"
+                        name="projectId"
+                        required
+                    />
+                    <div class="invalid-feedback"></div>
+                </div>
+                <div class="form-group">
+                    <label for="projectName">Project Name</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="projectName"
+                        name="projectName"
+                        required
+                    />
+                    <div class="invalid-feedback"></div>
+                </div>
+                <div class="form-group">
+                    <label for="difficulty">Difficulty</label>
+                    <select
+                        class="form-control"
+                        id="difficulty"
+                        name="difficulty"
+                        required
+                    >
+                        <option value="E">Easy</option>
+                        <option value="M">Medium</option>
+                        <option value="H">Hard</option>
+                    </select>
+                    <div class="invalid-feedback"></div>
+                </div>
+                <div class="form-group">
+                    <label for="projectDept">Department</label>
+                    <select
+                        class="form-control"
+                        id="projectDept"
+                        name="projectDept"
+                        required
+                    >
+                        <option
+                            th:each="dept : ${departments}"
+                            th:value="${dept.deptId}"
+                            th:text="${dept.deptName}"
+                        ></option>
+                    </select>
+                    <div class="invalid-feedback"></div>
+                </div>
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    onclick="showConfirmModal()"
+                >
+                    Register
+                </button>
+                <a href="/dashboard" class="btn btn-secondary">Back</a>
+            </form>
+
+            <!-- Confirmation Modal -->
+            <div class="modal fade" id="confirmModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                Confirm Project Registration
+                            </h5>
+                            <button
+                                type="button"
+                                class="close"
+                                data-dismiss="modal"
+                            >
+                                &times;
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <dl class="row">
+                                <dt class="col-sm-4">Project ID:</dt>
+                                <dd
+                                    class="col-sm-8"
+                                    id="confirm-projectId"
+                                ></dd>
+
+                                <dt class="col-sm-4">Project Name:</dt>
+                                <dd
+                                    class="col-sm-8"
+                                    id="confirm-projectName"
+                                ></dd>
+
+                                <dt class="col-sm-4">Difficulty:</dt>
+                                <dd
+                                    class="col-sm-8"
+                                    id="confirm-difficulty"
+                                ></dd>
+
+                                <dt class="col-sm-4">Department:</dt>
+                                <dd
+                                    class="col-sm-8"
+                                    id="confirm-department"
+                                ></dd>
+                            </dl>
+                        </div>
+                        <div class="modal-footer">
+                            <button
+                                type="button"
+                                class="btn btn-secondary"
+                                data-dismiss="modal"
+                            >
+                                Back
+                            </button>
+                            <button
+                                type="button"
+                                class="btn btn-primary"
+                                onclick="submitForm()"
+                            >
+                                Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+        <script>
+            function showConfirmModal() {
+                document.getElementById("confirm-projectId").textContent =
+                    document.getElementById("projectId").value;
+                document.getElementById("confirm-projectName").textContent =
+                    document.getElementById("projectName").value;
+                document.getElementById("confirm-difficulty").textContent =
+                    document.getElementById("difficulty").options[
+                        document.getElementById("difficulty").selectedIndex
+                    ].text;
+                document.getElementById("confirm-department").textContent =
+                    document.getElementById("projectDept").options[
+                        document.getElementById("projectDept").selectedIndex
+                    ].text;
+                $("#confirmModal").modal("show");
+            }
+
+            function submitForm() {
+                const formData = {
+                    projectId: document.getElementById("projectId").value,
+                    projectName: document.getElementById("projectName").value,
+                    difficulty: document.getElementById("difficulty").value,
+                    projectDept: document.getElementById("projectDept").value,
+                };
+
+                fetch("/project/register", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(formData),
+                })
+                    .then((response) => {
+                        if (!response.ok) {
+                            return response
+                                .json()
+                                .then((err) => Promise.reject(err));
+                        }
+                        return response.json();
+                    })
+                    .then((data) => {
+                        window.location.href =
+                            "/project/register/complete?projectId=" +
+                            data.projectId;
+                    })
+                    .catch((error) => {
+                        if (error.errors) {
+                            Object.keys(error.errors).forEach((key) => {
+                                const input = document.getElementById(key);
+                                if (input) {
+                                    input.classList.add("is-invalid");
+                                    input.nextElementSibling.textContent =
+                                        error.errors[key];
+                                }
+                            });
+                        }
+                        $("#confirmModal").modal("hide");
+                    });
+            }
+        </script>
+    </body>
+</html>

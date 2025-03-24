@@ -1,10 +1,9 @@
 package com.yjlearning.ProjectManagement.service;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.yjlearning.ProjectManagement.dto.project.ProjectResponseDTO;
 import com.yjlearning.ProjectManagement.entity.Project;
 
 public interface ProjectService {
@@ -12,9 +11,7 @@ public interface ProjectService {
 
     Project findById(Integer id);
 
-    List<Project> findAll();
-
-    Page<Project> findAll(Pageable pageable);
+    Page<Project> findAll(Pageable pageable); // Keep only the pageable version
 
     void deleteById(Integer id);
 
@@ -24,11 +21,8 @@ public interface ProjectService {
 
     boolean existsByProjectName(String projectName);
 
-    Page<Project> findByProjectId(Integer searchTerm, Pageable pageable);
+    // Search-related methods
+    Page<ProjectResponseDTO> getAllProjectsForDashboard(Pageable pageable);
 
-    Page<Project> findByProjectName(String searchTerm, Pageable pageable);
-
-    Page<Project> findByDifficulty(Character searchTerm, Pageable pageable);
-
-    Page<Project> findByDepartmentName(String searchTerm, Pageable pageable);
+    Page<ProjectResponseDTO> searchProjects(String searchField, String searchTerm, Pageable pageable);
 }

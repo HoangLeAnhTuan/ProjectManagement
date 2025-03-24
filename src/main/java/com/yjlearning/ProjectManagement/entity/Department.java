@@ -12,6 +12,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import jakarta.persistence.Column;
 
 @Data
 @NoArgsConstructor
@@ -20,12 +21,12 @@ import lombok.NoArgsConstructor;
 @Table(name = "Department")
 public class Department {
     @Id
-    // @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "DEPT_ID")
     private Integer deptId;
 
+    @Column(name = "DEPT_NAME")
     private String deptName;
 
     @OneToMany(mappedBy = "department", cascade = CascadeType.ALL)
     private List<Project> projects;
-
 }
