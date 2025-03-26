@@ -1,59 +1,28 @@
+@PostMapping("/project/register/confirm")
+public String confirmRegister(
+    @ModelAttribute("project") @Validated ProjectRegisterDTO projectDTO,
+    BindingResult result,
+    Model model
+) {
+    // Validate trùng ID
+    if (projectService.existsByProjectId(projectDTO.getProjectId())) {
+        result.rejectValue("projectId", null, "Project ID already exists");
+    }
 
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8" />
-    <title>Register Project</title>
-    <link 
-        rel="stylesheet" 
-        href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" 
-    />
-</head>
-<body>
-<div class="container mt-5">
-    <h2 class="mb-4">Register New Project</h2>
+    if (result.hasErrors()) {
+        model.addAttribute("departments", departmentService.findAll());
+        return "project-register"; // Quay lại form cùng lỗi
+    }
 
-    <form method="POST" action="/project/register/confirm" th:object="${project}">
-        <div class="form-group">
-            <label for="projectId">Project ID</label>
-            <input type="number" id="projectId" class="form-control" th:field="*{projectId}" />
-            <div class="text-danger" th:if="${#fields.hasErrors('projectId')}" th:errors="*{projectId}"></div>
-        </div>
+    Department dept = departmentService.findById(projectDTO.getProjectDept());
+    String difficultyText = switch (projectDTO.getDifficulty()) {
+        case "E" -> "Easy";
+        case "M" -> "Medium";
+        case "H" -> "Hard";
+        default -> "Unknown";
+    };
 
-        <div class="form-group">
-            <label for="projectName">Project Name</label>
-            <input type="text" id="projectName" class="form-control" th:field="*{projectName}" />
-            <div class="text-danger" th:if="${#fields.hasErrors('projectName')}" th:errors="*{projectName}"></div>
-        </div>
-
-        <div class="form-group">
-            <label for="difficulty">Difficulty</label>
-            <select id="difficulty" class="form-control" th:field="*{difficulty}">
-                <option value="" disabled th:if="*{difficulty} == null">-- Select Difficulty --</option>
-                <option value="E">Easy</option>
-                <option value="M">Medium</option>
-                <option value="H">Hard</option>
-            </select>
-            <div class="text-danger" th:if="${#fields.hasErrors('difficulty')}" th:errors="*{difficulty}"></div>
-        </div>
-
-        <div class="form-group">
-            <label for="projectDept">Department</label>
-            <select id="projectDept" class="form-control" th:field="*{projectDept}">
-                <option value="" disabled th:if="*{projectDept} == null">-- Select Department --</option>
-                <option th:each="dept : ${departments}"
-                        th:value="${dept.deptId}"
-                        th:text="${dept.deptName}">
-                </option>
-            </select>
-            <div class="text-danger" th:if="${#fields.hasErrors('projectDept')}" th:errors="*{projectDept}"></div>
-        </div>
-
-        <div class="d-flex justify-content-between">
-            <a href="/dashboard" class="btn btn-secondary">Back to Dashboard</a>
-            <button type="submit" class="btn btn-primary">Register</button>
-        </div>
-    </form>
-</div>
-</body>
-</html>
+    model.addAttribute("department", dept);
+    model.addAttribute("difficultyText", difficultyText);
+    return "project-confirm";
+}
