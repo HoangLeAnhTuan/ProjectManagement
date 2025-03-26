@@ -1,51 +1,63 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8" />
-    <title>Confirm Project</title>
-    <link 
-        rel="stylesheet" 
-        href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" 
-    />
-</head>
-<body>
-<div class="container mt-5">
-    <h2>Confirm Project Registration</h2>
-    <div class="card mt-3">
-        <div class="card-body">
-            <dl class="row">
-                <dt class="col-sm-4">Project ID:</dt>
-                <dd class="col-sm-8" th:text="${project.projectId}"></dd>
+@GetMapping("/project/register")
+public String showRegisterForm(Model model) {
+    if (!model.containsAttribute("project")) {
+        model.addAttribute("project", new ProjectRegisterDTO());
+    }
+    model.addAttribute("departments", departmentService.findAll());
+    return "project-register";
+}
 
-                <dt class="col-sm-4">Project Name:</dt>
-                <dd class="col-sm-8" th:text="${project.projectName}"></dd>
+@PostMapping("/project/register")
+public String returnToRegister(@ModelAttribute ProjectRegisterDTO projectDTO, Model model) {
+    model.addAttribute("project", projectDTO);
+    model.addAttribute("departments", departmentService.findAll());
+    return "project-register";
+}
 
-                <dt class="col-sm-4">Difficulty:</dt>
-                <dd class="col-sm-8" th:text="${difficultyText}"></dd>
+@PostMapping("/project/register/confirm")
+public String confirmRegister(@ModelAttribute ProjectRegisterDTO projectDTO, Model model) {
+    Department dept = departmentService.findById(projectDTO.getProjectDept());
+    String difficultyText = switch (projectDTO.getDifficulty()) {
+        case "E" -> "Easy";
+        case "M" -> "Medium";
+        case "H" -> "Hard";
+        default -> "Unknown";
+    };
 
-                <dt class="col-sm-4">Department:</dt>
-                <dd class="col-sm-8" th:text="${department.deptName}"></dd>
-            </dl>
-        </div>
-    </div>
+    model.addAttribute("project", projectDTO);
+    model.addAttribute("department", dept);
+    model.addAttribute("difficultyText", difficultyText);
+    return "project-confirm";
+}
 
-    <form method="POST" action="/project/register/save" class="mt-4">
-        <input type="hidden" name="projectId" th:value="${project.projectId}" />
-        <input type="hidden" name="projectName" th:value="${project.projectName}" />
-        <input type="hidden" name="difficulty" th:value="${project.difficulty}" />
-        <input type="hidden" name="projectDept" th:value="${project.projectDept}" />
+@PostMapping("/project/register/save")
+public String saveProject(@ModelAttribute @Validated ProjectRegisterDTO projectDTO,
+                          BindingResult result, Model model) {
+    if (result.hasErrors()) {
+        model.addAttribute("departments", departmentService.findAll());
+        return "project-register";
+    }
 
-        <div class="d-flex justify-content-between">
-            <form method="POST" action="/project/register">
-                <input type="hidden" name="projectId" th:value="${project.projectId}" />
-                <input type="hidden" name="projectName" th:value="${project.projectName}" />
-                <input type="hidden" name="difficulty" th:value="${project.difficulty}" />
-                <input type="hidden" name="projectDept" th:value="${project.projectDept}" />
-                <button class="btn btn-secondary" type="submit">Back</button>
-            </form>
-            <button class="btn btn-success" type="submit">Save</button>
-        </div>
-    </form>
-</div>
-</body>
-</html>
+    if (projectService.existsByProjectId(projectDTO.getProjectId())) {
+        result.rejectValue("projectId", null, "Project ID already exists");
+        model.addAttribute("departments", departmentService.findAll());
+        return "project-register";
+    }
+
+    Project project = new Project();
+    project.setProjectId(projectDTO.getProjectId());
+    project.setProjectName(projectDTO.getProjectName());
+    project.setDifficulty(projectDTO.getDifficulty().charAt(0));
+    project.setVersion(1);
+    project.setStartDay(LocalDateTime.now());
+    project.setEndDay(LocalDateTime.now().plusMonths(6));
+    project.setDepartment(departmentService.findById(projectDTO.getProjectDept()));
+
+    projectService.save(project);
+
+    DeleteCompletionDTO completion = new DeleteCompletionDTO(
+        project.getProjectId(),
+        String.format("Register complete for %s with ID #%d", project.getProjectName(), project.getProjectId()));
+    model.addAttribute("completion", completion);
+    return "delete-complete";
+}
