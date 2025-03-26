@@ -1,28 +1,56 @@
-@PostMapping("/project/register/confirm")
-public String confirmRegister(
-    @ModelAttribute("project") @Validated ProjectRegisterDTO projectDTO,
-    BindingResult result,
-    Model model
-) {
-    // Validate trùng ID
-    if (projectService.existsByProjectId(projectDTO.getProjectId())) {
-        result.rejectValue("projectId", null, "Project ID already exists");
-    }
 
-    if (result.hasErrors()) {
-        model.addAttribute("departments", departmentService.findAll());
-        return "project-register"; // Quay lại form cùng lỗi
-    }
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Confirm Project Registration</title>
+    <link 
+        rel="stylesheet" 
+        href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" 
+    />
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="mb-4">Confirm Project Registration</h2>
 
-    Department dept = departmentService.findById(projectDTO.getProjectDept());
-    String difficultyText = switch (projectDTO.getDifficulty()) {
-        case "E" -> "Easy";
-        case "M" -> "Medium";
-        case "H" -> "Hard";
-        default -> "Unknown";
-    };
+    <div class="card">
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-4">Project ID:</dt>
+                <dd class="col-sm-8" th:text="${project.projectId}"></dd>
 
-    model.addAttribute("department", dept);
-    model.addAttribute("difficultyText", difficultyText);
-    return "project-confirm";
-}
+                <dt class="col-sm-4">Project Name:</dt>
+                <dd class="col-sm-8" th:text="${project.projectName}"></dd>
+
+                <dt class="col-sm-4">Difficulty:</dt>
+                <dd class="col-sm-8" th:text="${difficultyText}"></dd>
+
+                <dt class="col-sm-4">Department:</dt>
+                <dd class="col-sm-8" th:text="${department.deptName}"></dd>
+            </dl>
+        </div>
+    </div>
+
+    <!-- Form Save -->
+    <form method="POST" action="/project/register" class="mt-4">
+        <input type="hidden" name="projectId" th:value="${project.projectId}" />
+        <input type="hidden" name="projectName" th:value="${project.projectName}" />
+        <input type="hidden" name="difficulty" th:value="${project.difficulty}" />
+        <input type="hidden" name="projectDept" th:value="${project.projectDept}" />
+        
+        <div class="d-flex justify-content-between">
+            <!-- Form Back -->
+            <form method="POST" action="/project/register">
+                <input type="hidden" name="projectId" th:value="${project.projectId}" />
+                <input type="hidden" name="projectName" th:value="${project.projectName}" />
+                <input type="hidden" name="difficulty" th:value="${project.difficulty}" />
+                <input type="hidden" name="projectDept" th:value="${project.projectDept}" />
+                <button class="btn btn-secondary" type="submit">Back</button>
+            </form>
+
+            <button class="btn btn-success" type="submit">Save</button>
+        </div>
+    </form>
+</div>
+</body>
+</html>
