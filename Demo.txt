@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
-    <title>Register Project</title>
+    <title>Confirm Project</title>
     <link 
         rel="stylesheet" 
         href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" 
@@ -10,39 +10,40 @@
 </head>
 <body>
 <div class="container mt-5">
-    <h2>Register New Project</h2>
-    <form method="POST" action="/project/register/confirm" th:object="${project}">
-        <div class="form-group">
-            <label for="projectId">Project ID</label>
-            <input type="number" class="form-control" id="projectId" name="projectId"
-                   th:value="*{projectId}" required />
+    <h2>Confirm Project Registration</h2>
+    <div class="card mt-3">
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-4">Project ID:</dt>
+                <dd class="col-sm-8" th:text="${project.projectId}"></dd>
+
+                <dt class="col-sm-4">Project Name:</dt>
+                <dd class="col-sm-8" th:text="${project.projectName}"></dd>
+
+                <dt class="col-sm-4">Difficulty:</dt>
+                <dd class="col-sm-8" th:text="${difficultyText}"></dd>
+
+                <dt class="col-sm-4">Department:</dt>
+                <dd class="col-sm-8" th:text="${department.deptName}"></dd>
+            </dl>
         </div>
-        <div class="form-group">
-            <label for="projectName">Project Name</label>
-            <input type="text" class="form-control" id="projectName" name="projectName"
-                   th:value="*{projectName}" required />
-        </div>
-        <div class="form-group">
-            <label for="difficulty">Difficulty</label>
-            <select class="form-control" id="difficulty" name="difficulty" required>
-                <option value="E" th:selected="*{difficulty} == 'E'">Easy</option>
-                <option value="M" th:selected="*{difficulty} == 'M'">Medium</option>
-                <option value="H" th:selected="*{difficulty} == 'H'">Hard</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="projectDept">Department</label>
-            <select class="form-control" id="projectDept" name="projectDept" required>
-                <option th:each="dept : ${departments}"
-                        th:value="${dept.deptId}"
-                        th:selected="*{projectDept} == ${dept.deptId}"
-                        th:text="${dept.deptName}">
-                </option>
-            </select>
-        </div>
+    </div>
+
+    <form method="POST" action="/project/register/save" class="mt-4">
+        <input type="hidden" name="projectId" th:value="${project.projectId}" />
+        <input type="hidden" name="projectName" th:value="${project.projectName}" />
+        <input type="hidden" name="difficulty" th:value="${project.difficulty}" />
+        <input type="hidden" name="projectDept" th:value="${project.projectDept}" />
+
         <div class="d-flex justify-content-between">
-            <a href="/dashboard" class="btn btn-secondary">Back to Dashboard</a>
-            <button type="submit" class="btn btn-primary">Register</button>
+            <form method="POST" action="/project/register">
+                <input type="hidden" name="projectId" th:value="${project.projectId}" />
+                <input type="hidden" name="projectName" th:value="${project.projectName}" />
+                <input type="hidden" name="difficulty" th:value="${project.difficulty}" />
+                <input type="hidden" name="projectDept" th:value="${project.projectDept}" />
+                <button class="btn btn-secondary" type="submit">Back</button>
+            </form>
+            <button class="btn btn-success" type="submit">Save</button>
         </div>
     </form>
 </div>
